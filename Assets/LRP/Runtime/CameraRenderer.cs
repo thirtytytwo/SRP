@@ -5,6 +5,9 @@ namespace LRP.Runtime
 {
     public partial class CameraRenderer
     {
+        static ShaderTagId mUnlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
+        static ShaderTagId mLitShaderTagId = new ShaderTagId("LRPLit");
+        
         private ScriptableRenderContext mContext;
 
         private Camera mCamera;
@@ -12,6 +15,8 @@ namespace LRP.Runtime
         CommandBuffer mBuffer = new CommandBuffer {name = "Render Camera"};
         
         CullingResults mCullingResults;
+
+        private Lighting Lighting = new Lighting();
 
 #if UNITY_EDITOR
         private string mSampleName { get; set; }
@@ -29,6 +34,7 @@ namespace LRP.Runtime
             if (!Cull()) return;
             
             Setup();
+            Lighting.Setup(context, mCullingResults);
             DrawVisibleGeometry(dynamic, instancing);
             DrawUnsupportedShaders();
             DrawGizmos();
@@ -43,6 +49,8 @@ namespace LRP.Runtime
             var sortingSettings = new SortingSettings(mCamera);
             var drawingSettings = new DrawingSettings(mUnlitShaderTagId, sortingSettings){enableInstancing = instancing, enableDynamicBatching = dynamic};
             var filteringSettings = new FilteringSettings(RenderQueueRange.all);
+            
+            drawingSettings.SetShaderPassName(1, mLitShaderTagId);
             
             mContext.DrawRenderers(mCullingResults, ref drawingSettings, ref filteringSettings);
             

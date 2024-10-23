@@ -7,7 +7,6 @@ namespace LRP.Runtime
     public partial class CameraRenderer
     {
         
-        static ShaderTagId mUnlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
 
         static ShaderTagId[] mLegacyShaderTagIds =
         {
