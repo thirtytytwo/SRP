@@ -25,7 +25,7 @@ Shader "LRP/Unlit_Instancing"
             struct Varying
             {
                 float4 positionSS : SV_POSITION;
-                float2 uv : TEXCOORD0;
+                float2 uv : VAR_BASE_UV;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 

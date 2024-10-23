@@ -10,7 +10,7 @@ public class LRenderPipeline : RenderPipeline
     public LRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher)
     {
         mUseDynamicBatching = useDynamicBatching;
-        mUseDynamicBatching = useGPUInstancing;
+        mUseGPUInstancing = useGPUInstancing;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
     }
     
