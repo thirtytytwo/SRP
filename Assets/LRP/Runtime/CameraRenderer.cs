@@ -24,20 +24,24 @@ namespace LRP.Runtime
         const string mSampleName = mBuffer.name;
 #endif
         
-        public void Render(ScriptableRenderContext context, Camera camera, bool dynamic, bool instancing)
+        public void Render(ScriptableRenderContext context, Camera camera, bool dynamic, bool instancing, ShadowSettings shadowSettings)
         {
             this.mContext = context;
             this.mCamera = camera;
 
             PrepareForSceneView();
             PrepareBuffer();
-            if (!Cull()) return;
+            if (!Cull(shadowSettings.MaxShadowDistance)) return;
             
+            mBuffer.BeginSample(mSampleName);
+            ExecuteBuffer();
+            Lighting.Setup(context, mCullingResults, shadowSettings);
+            mBuffer.EndSample(mSampleName);
             Setup();
-            Lighting.Setup(context, mCullingResults);
             DrawVisibleGeometry(dynamic, instancing);
             DrawUnsupportedShaders();
             DrawGizmos();
+            Lighting.Cleanup();
             Submit();
         }
 
@@ -82,10 +86,11 @@ namespace LRP.Runtime
             mBuffer.Clear();
         }
 
-        bool Cull()
+        bool Cull(float maxShadowDistance)
         {
             if (mCamera.TryGetCullingParameters(out ScriptableCullingParameters parameter))
             {
+                parameter.shadowDistance = Mathf.Min(maxShadowDistance, mCamera.farClipPlane);
                 mCullingResults = mContext.Cull(ref parameter);
                 return true;
             }

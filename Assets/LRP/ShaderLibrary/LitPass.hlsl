@@ -5,6 +5,8 @@
 #include "Assets/LRP/ShaderLibrary/Surface.hlsl"
 #include "Assets/LRP/ShaderLibrary/Lighting.hlsl"
 
+#define MIN_ROUGHNESS 0.3
+
 struct Attribute
 {
     float4 positionOS : POSITION;
@@ -15,34 +17,36 @@ struct Attribute
 struct Varying
 {
     float4 positionSS : SV_POSITION;
+    float3 positionWS : TEXCOORD2;
     float3 normalWS : TEXCOORD1;
     float2 uv : TEXCOORD0;
 };
 
-CBUFFER_START(UnityPerMaterial)
-half4 _BaseColor;
-CBUFFER_END
 
 Varying LitVertex(Attribute input)
 {
     Varying output;
     output.positionSS = TransformObjectToHClip(input.positionOS.xyz);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+    output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
     output.uv = input.uv;
     return output;
 }
 
 half4 LitFragment(Varying input) : SV_Target
 {
-    Surface surface = GetSurface(input.normalWS, _BaseColor.rgb, _BaseColor.a);
+    float3 viewDir = normalize(_WorldSpaceCameraPos - input.positionWS);
+    float3 normal = normalize(input.normalWS);
+    float perceptualRoughness = clamp(_PerceptualRoughness, MIN_ROUGHNESS, 1.0f);
+    Surface surface = GetSurface(normal, viewDir, _BaseColor, perceptualRoughness, _Metallic);
+    BRDF brdf = GetBRDF(surface);
     int count = GetDirectionalLightCount();
     half3 color;
     UNITY_LOOP
     for(int i = 0; i < count; i++)
     {
         Light light = GetMainLight(i);
-        color += surface.color * light.color * saturate(dot(surface.normal, light.direction));
-        color = saturate(color);
+        color += PBRBaseRendering(brdf, surface, light);
     }
     return half4(color, surface.alpha);
 }

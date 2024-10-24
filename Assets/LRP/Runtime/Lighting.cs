@@ -16,12 +16,16 @@ public class Lighting
     private CommandBuffer buffer = new CommandBuffer() { name = "Lighting" };
 
     private CullingResults mCullingResults;
+    
+    private Shadow mShadow = new Shadow();
 
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults)
+    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings)
     {
         mCullingResults = cullingResults;
         buffer.BeginSample(buffer.name);
+        mShadow.Setup(context, cullingResults, shadowSettings);
         SetupLight();
+        mShadow.Render();
         buffer.EndSample(buffer.name);
         context.ExecuteCommandBuffer(buffer);
         buffer.Clear();
@@ -37,6 +41,7 @@ public class Lighting
             if(light.lightType != LightType.Directional) continue;
             dirLightColors[i] = light.finalColor;
             dirLightDirections[i] = -light.localToWorldMatrix.GetColumn(2);
+            mShadow.ReserveDiectionalShadows(light.light, i);
             dirLightCount++;
             if(dirLightCount >= maxDirLightCount) break;
         }
@@ -45,4 +50,9 @@ public class Lighting
         buffer.SetGlobalVectorArray(dirLightColorId, dirLightColors);
         buffer.SetGlobalVectorArray(dirLightDirectionId, dirLightDirections);
     }
+    
+    public void Cleanup()
+    {
+        mShadow.Cleanup();
+    }  
 }

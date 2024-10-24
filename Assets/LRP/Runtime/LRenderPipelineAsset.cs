@@ -16,9 +16,12 @@ namespace LRP.Runtime
         [SerializeField]
         bool m_useSRPBatcher;
 
+        [SerializeField] 
+        private ShadowSettings m_ShadowSettings = default;
+
         protected override RenderPipeline CreatePipeline()
         {
-            return new LRenderPipeline(m_UseDynamicBatch, m_UseGPUInstancing, m_useSRPBatcher);
+            return new LRenderPipeline(m_UseDynamicBatch, m_UseGPUInstancing, m_useSRPBatcher, m_ShadowSettings);
         }
     }
 }

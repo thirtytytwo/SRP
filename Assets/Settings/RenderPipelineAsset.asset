@@ -14,4 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_UseDynamicBatch: 0
   m_UseGPUInstancing: 1
-  m_useSRPBatcher: 0
+  m_useSRPBatcher: 1
+  m_ShadowSettings:
+    MaxShadowDistance: 100
+    directional:
+      _ShadowMapSize: 1024

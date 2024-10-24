@@ -10,7 +10,8 @@ Material:
   m_Name: Lit
   m_Shader: {fileID: 4800000, guid: 2d7a7cf3709a3344eb122b925d80f172, type: 3}
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _PREMULTIPLY_ALPHA
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -65,10 +66,13 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Metallic: 0
+    - _Metallic: 0.093
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _PerceptualRoughness: 0.607
+    - _PremulAlpha: 0
+    - _PremultiplyAlpha: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
