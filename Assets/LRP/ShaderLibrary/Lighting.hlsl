@@ -6,25 +6,36 @@
 
 CBUFFER_START(_Light)
     int _DirectionalLightCount;
-    float3 _DirectionalLightColor[MAX_LIGHT_COUNT];
-    float3 _DirectionalLightDirection[MAX_LIGHT_COUNT];
+    float4 _DirectionalLightColor[MAX_LIGHT_COUNT];
+    float4 _DirectionalLightDirection[MAX_LIGHT_COUNT];
+    float4 _DirectionalLightShadowData[MAX_LIGHT_COUNT];
 CBUFFER_END
 
 struct Light
 {
     float3 color;
     float3 direction;
+    float attenuation;
 };
 
 int GetDirectionalLightCount()
 {
     return _DirectionalLightCount;
 }
+
+DirectionalShadowData GetDirectionalShadowData(int index, ShadowData shadowData)
+{
+    DirectionalShadowData data;
+    data.strength = _DirectionalLightShadowData[index].x;
+    data.tileIndex = _DirectionalLightShadowData[index].y + shadowData.cascadeIndex;
+    return data;
+}
 Light GetMainLight(int index)
 {
     Light light;
     light.color = _DirectionalLightColor[index];
     light.direction = _DirectionalLightDirection[index];
+    light.attenuation = 1.0;
     return light;
 }
 
@@ -79,6 +90,6 @@ float3 PBRBaseRendering(BRDF brdf, Surface surface, Light light)
     float NdotL = max(dot(surface.normal, light.direction), 0.0);
     float3 diffuse = brdf.diffuse / PI;
 
-    return (kD * diffuse + specular) * light.color * NdotL;
+    return (kD * diffuse + specular) * light.color * NdotL * light.attenuation;
 }
 #endif

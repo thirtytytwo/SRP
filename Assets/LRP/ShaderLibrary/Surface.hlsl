@@ -20,7 +20,7 @@ struct BRDF
     float roughness;
 };
 
-Surface GetSurface(float3 normal, float3 viewDir, float4 color, float roughness, float metallic)
+Surface GetSurface( float3 normal, float3 viewDir, float4 color, float roughness, float metallic)
 {
     Surface surface;
     surface.normal = normal;

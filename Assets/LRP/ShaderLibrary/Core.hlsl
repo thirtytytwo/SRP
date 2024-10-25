@@ -4,4 +4,9 @@
 #include "UnityInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
+
+float DistanceSquared(float3 a, float3 b)
+{
+    return dot(a - b, a - b);
+}
 #endif

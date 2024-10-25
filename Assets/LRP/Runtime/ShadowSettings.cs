@@ -5,15 +5,28 @@ using UnityEngine;
 [System.Serializable]
 public class ShadowSettings
 {
-    [Min(0.0f)] public float MaxShadowDistance = 100f;
+    [Min(0.001f)] public float MaxShadowDistance = 100f;
+    [Range(0.001f, 1f)] public float DistanceFade = 0.1f;
     
     [System.Serializable]
     public struct Directional
     {
         public ShadowMapSize _ShadowMapSize;
+        
+        [Range(1,4)] public int _CascadeCount;
+        [Range(0f, 1f)] public float _CascadeRatio1, _CascadeRatio2, _CascadeRatio3;
+        [Range(0.001f, 1f)] public float _CascadeFade;
     }
 
-    public Directional directional = new Directional() { _ShadowMapSize = ShadowMapSize._1024 };
+    public Directional directional = new Directional()
+    {
+        _ShadowMapSize = ShadowMapSize._1024,
+        _CascadeCount = 4,
+        _CascadeRatio1 = 0.1f,
+        _CascadeRatio2 = 0.25f,
+        _CascadeRatio3 = 0.5f,
+        _CascadeFade = 0.1f
+    };
 
     public enum ShadowMapSize
     {
