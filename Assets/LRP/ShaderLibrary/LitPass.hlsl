@@ -1,13 +1,13 @@
 #ifndef L_LIT_PASS_INCLUDE
 #define L_LIT_PASS_INCLUDE
 
+
 #include "Assets/LRP/ShaderLibrary/Core.hlsl"
 #include "Assets/LRP/ShaderLibrary/Surface.hlsl"
 #include "Assets/LRP/ShaderLibrary/Shadow.hlsl"
 #include "Assets/LRP/ShaderLibrary/Lighting.hlsl"
 
 #define MIN_ROUGHNESS 0.3
-
 struct Attribute
 {
     float4 positionOS : POSITION;

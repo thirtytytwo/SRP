@@ -70,7 +70,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _PerceptualRoughness: 0.607
+    - _PerceptualRoughness: 0.816
     - _PremulAlpha: 0
     - _PremultiplyAlpha: 1
     - _SmoothnessTextureChannel: 0
