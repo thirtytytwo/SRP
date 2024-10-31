@@ -96,11 +96,11 @@ float FilterDirectionalShadow (float3 positionSTS) {
     #endif
 }
 
-float GetDirectionalShadowAttenuation(DirectionalShadowData data, ShadowData shadowData, float3 positionWS, float3 normal)
+float GetDirectionalShadowAttenuation(DirectionalShadowData data, ShadowData shadowData, Surface surface)
 {
     if(data.strength <= 0.0) return 1.0;
-    float3 normalBias = normal * data.nomralBias * _CascadeData[shadowData.cascadeIndex].y;
-    float3 shadowCoord = mul(_DirectionalShadowMatrices[data.tileIndex], float4(positionWS + normalBias, 1.0)).xyz;
+    float3 normalBias = surface.normal * data.nomralBias * _CascadeData[shadowData.cascadeIndex].y;
+    float3 shadowCoord = mul(_DirectionalShadowMatrices[data.tileIndex], float4(surface.position + normalBias, 1.0)).xyz;
     float shadow = FilterDirectionalShadow(shadowCoord);
     float val = lerp(1.0, shadow, data.strength);
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : val;

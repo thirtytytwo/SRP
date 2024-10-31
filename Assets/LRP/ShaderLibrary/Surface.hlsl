@@ -5,6 +5,7 @@
 #define MIN_REFLECTIVITY 0.04
 struct Surface
 {
+    float3 position;
     float3 normal;
     float3 viewDirection;
     float3 color;
@@ -20,7 +21,7 @@ struct BRDF
     float roughness;
 };
 
-Surface GetSurface( float3 normal, float3 viewDir, float4 color, float roughness, float metallic)
+Surface GetSurface( float3 position, float3 normal, float3 viewDir, float4 color, float roughness, float metallic)
 {
     Surface surface;
     surface.normal = normal;
@@ -29,6 +30,7 @@ Surface GetSurface( float3 normal, float3 viewDir, float4 color, float roughness
     surface.metallic = metallic;
     surface.percetualRoughness = roughness;
     surface.viewDirection = viewDir;
+    surface.position = position;
     return surface;
 }
 BRDF GetBRDF(Surface surface, bool premulAlpha = false)

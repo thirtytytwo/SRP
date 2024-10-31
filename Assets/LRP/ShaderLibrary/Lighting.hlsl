@@ -1,6 +1,7 @@
 #ifndef L_LIGHTING_INCLUDE
 #define L_LIGHTING_INCLUDE
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#include "Assets/LRP/ShaderLibrary/GI.hlsl"
 
 #define MAX_LIGHT_COUNT 4
 
@@ -31,6 +32,7 @@ DirectionalShadowData GetDirectionalShadowData(int index, ShadowData shadowData)
     data.nomralBias = _DirectionalLightShadowData[index].z;
     return data;
 }
+
 Light GetMainLight(int index)
 {
     Light light;
@@ -53,12 +55,10 @@ float GGXNormalDistribution(float3 normal, float3 halfVector, float roughness)
 
     return numerator / denominator;
 }
-
 float FresnelSchlick(float cosTheta, float3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
-
 float GeometrySmith(float3 normal, float3 viewDir, float3 lightDir, float roughness)
 {
     float NdotV = max(dot(normal, viewDir), 0.0);
@@ -88,9 +88,10 @@ float3 PBRBaseRendering(BRDF brdf, Surface surface, Light light)
     float3 kD = 1.0 - kS;
     kD *= 1.0 - surface.metallic;
 
-    float NdotL = max(dot(surface.normal, light.direction), 0.0);
+    float NdotL = dot(surface.normal, light.direction) * 0.5 + 0.5;
     float3 diffuse = brdf.diffuse / PI;
+    
 
-    return (kD * diffuse + specular) * light.color * NdotL * light.attenuation;
+    return (kD * diffuse + specular) * light.color * NdotL * light.attenuation;//临时加入indir光
 }
 #endif

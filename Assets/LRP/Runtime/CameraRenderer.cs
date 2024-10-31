@@ -51,7 +51,12 @@ namespace LRP.Runtime
         void DrawVisibleGeometry(bool dynamic, bool instancing)
         {
             var sortingSettings = new SortingSettings(mCamera);
-            var drawingSettings = new DrawingSettings(mUnlitShaderTagId, sortingSettings){enableInstancing = instancing, enableDynamicBatching = dynamic};
+            var drawingSettings = new DrawingSettings(mUnlitShaderTagId, sortingSettings)
+            {
+                enableInstancing = instancing, 
+                enableDynamicBatching = dynamic,
+                perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume
+            };
             var filteringSettings = new FilteringSettings(RenderQueueRange.all);
             
             drawingSettings.SetShaderPassName(1, mLitShaderTagId);

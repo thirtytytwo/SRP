@@ -2,7 +2,9 @@ Shader "LRP/Lit"
 {
     Properties
     {
+    	_BaseMap("Base Map", 2D) = "white" {}
         _BaseColor ("Base Color", Color) = (1,1,1,1)
+    	[HDR]_EmissionColor("Emission Color", Color) = (0,0,0,0)
         _PerceptualRoughness ("Roughness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.5
         
@@ -11,6 +13,10 @@ Shader "LRP/Lit"
     }
     SubShader
     {
+    	HLSLINCLUDE
+    	#include "Assets/LRP/ShaderLibrary/Core.hlsl"
+    	#include "Assets/LRP/ShaderLibrary/LitInput.hlsl"
+    	ENDHLSL
         Tags { "RenderType"="Opaque" }
         LOD 100
         
@@ -23,23 +29,14 @@ Shader "LRP/Lit"
             #pragma vertex LitVertex
             #pragma fragment LitFragment
 
-            #include "Assets/LRP/ShaderLibrary/Core.hlsl"
-
-            CBUFFER_START(UnityPerMaterial)
-            half4 _BaseColor;
-            float _Metallic;
-            float _PerceptualRoughness;
-            
-            CBUFFER_END
+            #pragma multi_compile _ LIGHTMAP_ON
 
             #include "Assets/LRP/ShaderLibrary/LitPass.hlsl"
             ENDHLSL
         }
 
 		Pass {
-			Tags {
-				"LightMode" = "ShadowCaster"
-			}
+			Tags { "LightMode" = "ShadowCaster"}
 
 			ColorMask 0
 
@@ -49,6 +46,20 @@ Shader "LRP/Lit"
 			#pragma vertex ShadowCasterVertex
 			#pragma fragment ShadowCasterFragment
 			#include "Assets/LRP/ShaderLibrary/ShadowCasterPass.hlsl"
+			ENDHLSL
+		}
+		Pass
+		{
+			Tags {"LightMode" = "Meta"}
+			
+			Cull Off
+			
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma vertex MetaVertex
+			#pragma fragment MetaFragment
+
+			#include "Assets/LRP/ShaderLibrary/MetaPass.hlsl"
 			ENDHLSL
 		}
     }
