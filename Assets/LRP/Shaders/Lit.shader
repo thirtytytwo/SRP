@@ -30,6 +30,7 @@ Shader "LRP/Lit"
             #pragma fragment LitFragment
 
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ _SHADOW_MASK_DISTANCE
 
             #include "Assets/LRP/ShaderLibrary/LitPass.hlsl"
             ENDHLSL

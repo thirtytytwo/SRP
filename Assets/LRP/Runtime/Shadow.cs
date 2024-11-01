@@ -25,6 +25,9 @@ public class Shadow
         "_DIRECTIONAL_PCF5",
         "_DIRECTIONAL_PCF7",
     };
+
+    private static string[] shadowMaskKeywords = { "_SHADOW_MASK_DISTANCE" };
+    private bool useShadowMask;
     
     static Vector4[] cascadeCullingSphere = new Vector4[maxCascade],
                         cascadeData = new Vector4[maxCascade];
@@ -46,6 +49,7 @@ public class Shadow
         mShadowSettings = shadowSettings;
         mCullingResults = cullingResults;
         shadowedDirectionalLightCount = 0;
+        useShadowMask = false;
     }
 
     public void Render()
@@ -58,14 +62,27 @@ public class Shadow
         {
             buffer.GetTemporaryRT(dirShadowAtlasId, 1, 1, 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
         }
+        
+        buffer.BeginSample(buffer.name);
+        if(useShadowMask) buffer.EnableShaderKeyword(shadowMaskKeywords[0]);
+        buffer.EndSample(buffer.name);
+        ExecuteBuffer();
     }
 
     public Vector3 ReserveDiectionalShadows(Light light, int visibleLightIndex)
     {
         if(shadowedDirectionalLightCount < maxShadowDiectionalLightCount && 
-           light.shadows != LightShadows.None &&
-           mCullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds bounds))
+           light.shadows != LightShadows.None && light.shadowStrength > 0f)
         {
+            LightBakingOutput lightBaking = light.bakingOutput;
+            if(lightBaking.lightmapBakeType == LightmapBakeType.Mixed && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask)
+            {
+                useShadowMask = true;
+            }
+            if(!mCullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+            {
+                return new Vector3(-light.shadowStrength, 0f, 0f);
+            }
             mShadowedDirectionalLights[shadowedDirectionalLightCount] = new ShadowedDiectionalLight {visibleLightIndex = visibleLightIndex, 
                                                                                                         slopeScaleBias = light.shadowBias, 
                                                                                                         nearPlaneOffset = light.shadowNearPlane};
@@ -86,7 +103,7 @@ public class Shadow
         ExecuteBuffer();
 
         int tiles = shadowedDirectionalLightCount * mShadowSettings.directional._CascadeCount;
-        int split = shadowedDirectionalLightCount <= 1 ? 1 : tiles <= 4 ? 2 : 4;
+        int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
         int tileSize = atlasSize / split;
         for (int i = 0; i < shadowedDirectionalLightCount; i++)
         {

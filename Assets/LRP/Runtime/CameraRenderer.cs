@@ -55,7 +55,11 @@ namespace LRP.Runtime
             {
                 enableInstancing = instancing, 
                 enableDynamicBatching = dynamic,
-                perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume
+                perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe 
+                                                        | PerObjectData.LightProbeProxyVolume 
+                                                        | PerObjectData.ShadowMask 
+                                                        | PerObjectData.OcclusionProbe
+                                                        | PerObjectData.OcclusionProbeProxyVolume
             };
             var filteringSettings = new FilteringSettings(RenderQueueRange.all);
             

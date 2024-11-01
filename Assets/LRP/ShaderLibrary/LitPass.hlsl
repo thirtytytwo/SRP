@@ -61,6 +61,8 @@ half4 LitFragment(Varying input) : SV_Target
     GI gi = GetGI(GI_FRAGMENT_DATA(input), surface);
     half3 color;
     ShadowData data = GetShadowData(position, depthView);
+    data.shadowMask = gi.shadowMask;
+    //return data.shadowMask.shadows;
     for(int i = 0; i < count; i++)
     {
         Light light = GetMainLight(i);
