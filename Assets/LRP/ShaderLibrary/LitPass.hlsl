@@ -28,7 +28,7 @@ struct Attribute
 
 struct Varying
 {
-    float4 positionSS : SV_POSITION;
+    float4 positionCS : SV_POSITION;
     float3 positionWS : TEXCOORD2;
     float3 normalWS : TEXCOORD1;
     float2 uv : TEXCOORD0;
@@ -39,7 +39,7 @@ struct Varying
 Varying LitVertex(Attribute input)
 {
     Varying output;
-    output.positionSS = TransformObjectToHClip(input.positionOS.xyz);
+    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
     output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
@@ -49,6 +49,10 @@ Varying LitVertex(Attribute input)
 
 half4 LitFragment(Varying input) : SV_Target
 {
+#ifdef LOD_FADE_CROSSFADE
+    float dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+    clip(unity_LODFade.x + (unity_LODFade.x < 0.0 ? dither : -dither));
+#endif
     float3 viewDir = normalize(_WorldSpaceCameraPos - input.positionWS);
     float3 normal = normalize(input.normalWS);
     float3 position = input.positionWS;
@@ -57,18 +61,22 @@ half4 LitFragment(Varying input) : SV_Target
     float perceptualRoughness = clamp(GetPerceptualRoughness(), MIN_ROUGHNESS, 1.0f);
     Surface surface = GetSurface(position, normal, viewDir, baseCol, perceptualRoughness, GetMetallic());
     BRDF brdf = GetBRDF(surface);
-    int count = GetDirectionalLightCount();
     GI gi = GetGI(GI_FRAGMENT_DATA(input), surface);
-    half3 color;
+    half3 color = IndirectBRDF(surface, brdf, gi.diffuseIndir, gi.specularIndir);
     ShadowData data = GetShadowData(position, depthView);
     data.shadowMask = gi.shadowMask;
     //return data.shadowMask.shadows;
-    for(int i = 0; i < count; i++)
+    for(int i = 0; i < GetDirectionalLightCount(); i++)
     {
-        Light light = GetMainLight(i);
+        Light light = GetDirLights(i);
         DirectionalShadowData shadowData = GetDirectionalShadowData(i, data);
         shadowData.strength *= data.strength;
         light.attenuation = GetDirectionalShadowAttenuation(shadowData, data, surface);
+        color += PBRBaseRendering(brdf, surface, light);
+    }
+    for(int j = 0; j < GetOtherLightCount(); j++)
+    {
+        Light light = GetOtherLights(j, surface, data);
         color += PBRBaseRendering(brdf, surface, light);
     }
     //临时加间接漫反射

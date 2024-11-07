@@ -24,7 +24,7 @@ float4 unity_ProbeVolumeSizeInv;
 float4 unity_ProbeVolumeMin;
 
 float4 unity_ProbesOcclusion;
-
+float4 _ProjectionParams;
 CBUFFER_END
 
 float3 _WorldSpaceCameraPos;

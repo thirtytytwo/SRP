@@ -8,6 +8,8 @@ namespace LRP.Runtime
         static ShaderTagId mUnlitShaderTagId = new ShaderTagId("SRPDefaultUnlit");
         static ShaderTagId mLitShaderTagId = new ShaderTagId("LRPLit");
         
+        static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+        
         private ScriptableRenderContext mContext;
 
         private Camera mCamera;
@@ -17,6 +19,7 @@ namespace LRP.Runtime
         CullingResults mCullingResults;
 
         private Lighting Lighting = new Lighting();
+        private PostFXStack postFXStack = new PostFXStack();
 
 #if UNITY_EDITOR
         private string mSampleName { get; set; }
@@ -24,7 +27,7 @@ namespace LRP.Runtime
         const string mSampleName = mBuffer.name;
 #endif
         
-        public void Render(ScriptableRenderContext context, Camera camera, bool dynamic, bool instancing, ShadowSettings shadowSettings)
+        public void Render(ScriptableRenderContext context, Camera camera, bool dynamic, bool instancing, ShadowSettings shadowSettings, PostFXSettings postFXSettings)
         {
             this.mContext = context;
             this.mCamera = camera;
@@ -36,12 +39,14 @@ namespace LRP.Runtime
             mBuffer.BeginSample(mSampleName);
             ExecuteBuffer();
             Lighting.Setup(context, mCullingResults, shadowSettings);
+            postFXStack.Setup(context, camera, postFXSettings);
             mBuffer.EndSample(mSampleName);
             Setup();
             DrawVisibleGeometry(dynamic, instancing);
             DrawUnsupportedShaders();
+            if(postFXStack.IsActive) postFXStack.Render(frameBufferId);
             DrawGizmos();
-            Lighting.Cleanup();
+            Cleanup();
             Submit();
         }
 
@@ -60,6 +65,7 @@ namespace LRP.Runtime
                                                         | PerObjectData.ShadowMask 
                                                         | PerObjectData.OcclusionProbe
                                                         | PerObjectData.OcclusionProbeProxyVolume
+                                                        | PerObjectData.ReflectionProbes
             };
             var filteringSettings = new FilteringSettings(RenderQueueRange.all);
             
@@ -75,6 +81,12 @@ namespace LRP.Runtime
         {
             mContext.SetupCameraProperties(mCamera);
             CameraClearFlags flags = mCamera.clearFlags;
+            if (postFXStack.IsActive)
+            {
+                if (flags > CameraClearFlags.Color) flags = CameraClearFlags.Color;
+                mBuffer.GetTemporaryRT(frameBufferId, mCamera.pixelWidth, mCamera.pixelHeight,32, FilterMode.Bilinear, RenderTextureFormat.Default);
+                mBuffer.SetRenderTarget(frameBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            }
             mBuffer.ClearRenderTarget(
                 flags <= CameraClearFlags.Depth,
                 flags == CameraClearFlags.Color,
@@ -93,6 +105,15 @@ namespace LRP.Runtime
         {
             mContext.ExecuteCommandBuffer(mBuffer);
             mBuffer.Clear();
+        }
+
+        void Cleanup()
+        {
+            Lighting.Cleanup();
+            if (postFXStack.IsActive)
+            {
+                mBuffer.ReleaseTemporaryRT(frameBufferId);
+            }
         }
 
         bool Cull(float maxShadowDistance)

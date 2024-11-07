@@ -20,9 +20,10 @@ MonoBehaviour:
     DistanceFade: 0.1
     directional:
       _ShadowMapSize: 1024
-      _FilterMode: 1
+      _FilterMode: 2
       _CascadeCount: 4
       _CascadeRatio1: 0.3
       _CascadeRatio2: 0.5
       _CascadeRatio3: 0.8
       _CascadeFade: 0.1
+  m_PostFXSettings: {fileID: 11400000, guid: 28791ba7433d57d449c54aa1bbd6edde, type: 2}

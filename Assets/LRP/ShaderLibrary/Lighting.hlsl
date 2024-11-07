@@ -3,13 +3,20 @@
 
 #include "Assets/LRP/ShaderLibrary/GI.hlsl"
 
-#define MAX_LIGHT_COUNT 4
+#define MAX_DIR_LIGHT_COUNT 4
+#define MAX_OTHER_LIGHT_COUNT 64
 
 CBUFFER_START(_Light)
     int _DirectionalLightCount;
-    float4 _DirectionalLightColor[MAX_LIGHT_COUNT];
-    float4 _DirectionalLightDirection[MAX_LIGHT_COUNT];
-    float4 _DirectionalLightShadowData[MAX_LIGHT_COUNT];
+    float4 _DirectionalLightColor[MAX_DIR_LIGHT_COUNT];
+    float4 _DirectionalLightDirection[MAX_DIR_LIGHT_COUNT];
+    float4 _DirectionalLightShadowData[MAX_DIR_LIGHT_COUNT];
+
+    int _OtherLightCount;
+    float4 _OtherLightColors[MAX_OTHER_LIGHT_COUNT];
+    float4 _OtherLightPositions[MAX_OTHER_LIGHT_COUNT];
+    float4 _OtherLightDirections[MAX_OTHER_LIGHT_COUNT];
+    float4 _OtherLightSpotAngles[MAX_OTHER_LIGHT_COUNT];
 CBUFFER_END
 
 struct Light
@@ -23,6 +30,10 @@ int GetDirectionalLightCount()
 {
     return _DirectionalLightCount;
 }
+int GetOtherLightCount()
+{
+    return _OtherLightCount;
+}
 
 DirectionalShadowData GetDirectionalShadowData(int index, ShadowData shadowData)
 {
@@ -33,12 +44,27 @@ DirectionalShadowData GetDirectionalShadowData(int index, ShadowData shadowData)
     return data;
 }
 
-Light GetMainLight(int index)
+Light GetDirLights(int index)
 {
     Light light;
     light.color = _DirectionalLightColor[index];
     light.direction = _DirectionalLightDirection[index];
     light.attenuation = 1.0;
+    return light;
+}
+
+Light GetOtherLights(int index, Surface surface, ShadowData shadowData)
+{
+    Light light;
+    light.color = _OtherLightColors[index].rgb;
+    float3 ray = _OtherLightPositions[index].xyz - surface.position;
+    light.direction = normalize(ray);
+    float distanceSqr = max(dot(ray,ray), 0.0001);
+    float rangeAttenuation = pow(saturate(1 - pow(distanceSqr * _OtherLightPositions[index].w, 2)),2);
+    float4 spotAngles = _OtherLightSpotAngles[index];
+    float spotAttenuation = _OtherLightDirections[index] == 0 ? 1
+    :pow(saturate(dot(_OtherLightDirections[index].xyz, light.direction) * spotAngles.x + spotAngles.y), 2);
+    light.attenuation = spotAttenuation * rangeAttenuation / distanceSqr;
     return light;
 }
 

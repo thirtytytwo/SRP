@@ -4,6 +4,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Assets/LRP/ShaderLibrary/UnityInput.hlsl"
 
+TEXTURECUBE(unity_SpecCube0);
+SAMPLER(samplerunity_SpecCube0);
+
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
 
@@ -16,6 +19,7 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 struct GI
 {
     float3 diffuseIndir;
+    float3 specularIndir;
     ShadowMask shadowMask;
 };
 
@@ -34,7 +38,6 @@ float3 SampleLightmap(float2 uv)
         return 0.0f;
     #endif
 }
-
 float3 SampleLightProbe(Surface surface)
 {
     #ifdef LIGHTMAP_ON
@@ -83,10 +86,18 @@ float4 SampleBakedShadows (float2 lightMapUV, Surface surface) {
     #endif
 }
 
+float3 SampleEnvironment(Surface surface)
+{
+    float uvw = reflect(-surface.viewDirection, surface.normal);
+    float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, 0);
+    return environment.rgb;
+} 
+
 GI GetGI(float2 lightmapUV, Surface surface)
 {
     GI gi;
     gi.diffuseIndir = SampleLightmap(lightmapUV) + SampleLightProbe(surface);
+    gi.specularIndir = SampleEnvironment(surface);
     gi.shadowMask.distance = false;
     gi.shadowMask.shadows = 1.0;
     #if defined(_SHADOW_MASK_DISTANCE)

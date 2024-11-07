@@ -19,9 +19,12 @@ namespace LRP.Runtime
         [SerializeField] 
         private ShadowSettings m_ShadowSettings = default;
 
+        [SerializeField] 
+        private PostFXSettings m_PostFXSettings = default;
+
         protected override RenderPipeline CreatePipeline()
         {
-            return new LRenderPipeline(m_UseDynamicBatch, m_UseGPUInstancing, m_useSRPBatcher, m_ShadowSettings);
+            return new LRenderPipeline(m_UseDynamicBatch, m_UseGPUInstancing, m_useSRPBatcher, m_ShadowSettings, m_PostFXSettings);
         }
     }
 }
