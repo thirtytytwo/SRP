@@ -15,6 +15,7 @@ MonoBehaviour:
   m_UseDynamicBatch: 0
   m_UseGPUInstancing: 0
   m_useSRPBatcher: 1
+  m_AllowHDR: 1
   m_ShadowSettings:
     MaxShadowDistance: 150
     DistanceFade: 0.1
@@ -27,3 +28,4 @@ MonoBehaviour:
       _CascadeRatio3: 0.8
       _CascadeFade: 0.1
   m_PostFXSettings: {fileID: 11400000, guid: 28791ba7433d57d449c54aa1bbd6edde, type: 2}
+  m_ColorLUTResolution: 16

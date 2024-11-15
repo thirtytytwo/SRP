@@ -21,13 +21,15 @@ namespace LRP.Runtime
         private Lighting Lighting = new Lighting();
         private PostFXStack postFXStack = new PostFXStack();
 
+        private bool useHDR;
+
 #if UNITY_EDITOR
         private string mSampleName { get; set; }
 #else
         const string mSampleName = mBuffer.name;
 #endif
         
-        public void Render(ScriptableRenderContext context, Camera camera, bool dynamic, bool instancing, ShadowSettings shadowSettings, PostFXSettings postFXSettings)
+        public void Render(ScriptableRenderContext context, Camera camera, bool dynamic, bool instancing, ShadowSettings shadowSettings, PostFXSettings postFXSettings, bool allowHDR, int lutRes)
         {
             this.mContext = context;
             this.mCamera = camera;
@@ -35,11 +37,11 @@ namespace LRP.Runtime
             PrepareForSceneView();
             PrepareBuffer();
             if (!Cull(shadowSettings.MaxShadowDistance)) return;
-            
+            useHDR = allowHDR && mCamera.allowHDR;
             mBuffer.BeginSample(mSampleName);
             ExecuteBuffer();
             Lighting.Setup(context, mCullingResults, shadowSettings);
-            postFXStack.Setup(context, camera, postFXSettings);
+            postFXStack.Setup(context, camera, postFXSettings, allowHDR, lutRes);
             mBuffer.EndSample(mSampleName);
             Setup();
             DrawVisibleGeometry(dynamic, instancing);
@@ -84,7 +86,8 @@ namespace LRP.Runtime
             if (postFXStack.IsActive)
             {
                 if (flags > CameraClearFlags.Color) flags = CameraClearFlags.Color;
-                mBuffer.GetTemporaryRT(frameBufferId, mCamera.pixelWidth, mCamera.pixelHeight,32, FilterMode.Bilinear, RenderTextureFormat.Default);
+                mBuffer.GetTemporaryRT(frameBufferId, mCamera.pixelWidth, mCamera.pixelHeight,32, FilterMode.Bilinear, 
+                    useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
                 mBuffer.SetRenderTarget(frameBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             }
             mBuffer.ClearRenderTarget(

@@ -81,6 +81,7 @@ half4 LitFragment(Varying input) : SV_Target
     }
     //临时加间接漫反射
     color += gi.diffuseIndir;
-    return half4(color, surface.alpha);
+    color += _EmissionColor.rgb;
+    return float4(color, surface.alpha);
 }
 #endif
